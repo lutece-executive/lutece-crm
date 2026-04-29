@@ -198,6 +198,7 @@ function doLogin(){
   document.getElementById("user-name").textContent=user.prenom;
   document.getElementById("user-email").textContent=user.email;
   document.getElementById("user-av").textContent=user.initiales;
+  sessionStorage.setItem('crm_user', JSON.stringify(currentUser));
   document.getElementById("login-screen").style.display="none";
   document.getElementById("app-screen").style.display="block";
   loadDB();
@@ -205,6 +206,7 @@ function doLogin(){
 
 function doLogout(){
   currentUser=null;
+  sessionStorage.removeItem('crm_user');
   document.getElementById("li-email").value="";
   document.getElementById("li-pwd").value="";
   document.getElementById("login-screen").style.display="flex";
@@ -288,14 +290,13 @@ function vDB(m){
     var cs=0,ms=0,cr=0;
     s.opps.forEach(function(o){
       if(oy(o)!==CY)return;
-      // Compteurs dashboard
-      var oppYear=o.d1?parseInt(o.d1.split("-")[0]):(o.dr?parseInt(o.dr.split("-")[0]):null);
-      // Gagné : missions en cours/terminées en CY + CDI gagnés en CY
-      if(o.type==="Mission"&&(o.statut==="Mission en cours"||o.statut==="Mission terminée"||o.statut==="En cours"||o.statut==="Succes")&&oppYear===CY){nOk++;nMOk++;}
-      else if(o.type==="CDI"&&(o.statut==="Gagné"||o.statut==="Succes")&&oppYear===CY){nOk++;nCOk++;}
-      // En cours : missions avec statut "Mission en cours" en CY + CDI "Recherche en cours" en CY
-      if(o.type==="Mission"&&(o.statut==="Mission en cours"||o.statut==="En cours")&&oppYear===CY){nGo++;nMGo++;}
-      else if(o.type==="CDI"&&(o.statut==="Recherche en cours"||o.statut==="En cours")&&oppYear===CY){nGo++;nCGo++;}
+      // Compteurs dashboard - oy(o) est déjà filtré pour CY par le if au-dessus
+      // Gagné : missions actives/terminées + CDI gagnés
+      if(o.type==="Mission"&&(o.statut==="Mission en cours"||o.statut==="Mission terminée"||o.statut==="En cours"||o.statut==="Succes")){nOk++;nMOk++;}
+      else if(o.type==="CDI"&&(o.statut==="Gagné"||o.statut==="Succes")){nOk++;nCOk++;}
+      // En cours : missions "Mission en cours" + CDI "Recherche en cours"
+      if(o.type==="Mission"&&(o.statut==="Mission en cours"||o.statut==="En cours")){nGo++;nMGo++;}
+      else if(o.type==="CDI"&&(o.statut==="Recherche en cours"||o.statut==="En cours")){nGo++;nCGo++;}
       else if(o.statut==="Echec"||o.statut==="Perdu"){nKo++;if(o.type==="Mission")nMKo++;else nCKo++;}
       else if(o.statut==="Mission en cours"||o.statut==="En cours"||o.statut==="Recherche en cours"){nGo++;if(o.type==="Mission")nMGo++;else nCGo++;}
       if(o.type==="Mission"&&o.statut!=="Recherche en cours"){var r=cm(o);tca+=r.ca;tcaM+=r.ca;tmM+=r.m;cs+=r.ca;ms+=r.m;}
@@ -1197,6 +1198,18 @@ async function saveNewOpp(){
     selOpp=newOpp.id;view="opp_detail";render();
   }catch(e){alert('Erreur: '+e.message);}
 }
+
+// Restore session on page load
+(function(){
+  var saved=null;
+  try{saved=JSON.parse(sessionStorage.getItem('crm_user'));}catch(e){}
+  if(saved){
+    currentUser=saved;
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('app-screen').style.display='block';
+    loadDB();
+  }
+})();
 </script>
 </body>
 </html>
