@@ -1033,11 +1033,11 @@ function vFormOpp(m){
   h+='<div id="mf">';
   h+='<div class="fdiv"></div><div class="fsec">Détails de la mission</div>';
   h+='<div class="fg"><label>Intitulé du poste</label><input type="text" id="fo-poste-m" placeholder="Ex : Directeur Financier"></div>';
-  h+='<div class="fr2"><div class="fg"><label>Date de début</label><input type="date" id="fo-d1" onchange="fCalc()"></div>';
-  h+='<div class="fg"><label>Date de fin (estimée)</label><input type="date" id="fo-d2" onchange="fCalc()"></div></div>';
+  h+='<div class="fr2"><div class="fg"><label>Date de début</label><input type="date" id="fo-d1" onchange="joursManual=false;fCalc()"></div>';
+  h+='<div class="fg"><label>Date de fin (estimée)</label><input type="date" id="fo-d2" onchange="joursManual=false;fCalc()"></div></div>';
   h+='<div class="fr2"><div class="fg"><label>TJM client (€/j)</label><input type="number" id="fo-tjm" placeholder="1 200" oninput="fCalc()"><div class="fhint">Ce que vous refacturez au client</div></div>';
   h+='<div class="fg"><label>Coût journalier manager (€/j)</label><input type="number" id="fo-cj" placeholder="850" oninput="fCalc()"><div class="fhint">Ce que le manager vous facture</div></div></div>';
-  h+='<div class="fg"><label>Jours ouvrés (estimation)</label><input type="number" id="fo-j" placeholder="Calculé automatiquement"><div class="fhint">Calculé depuis les dates — modifiable manuellement</div></div>';
+  h+='<div class="fg"><label>Jours ouvrés (estimation)</label><input type="number" id="fo-j" value="0" placeholder="0"><div class="fhint">Calculé depuis les dates — modifiable manuellement</div></div>';
   h+='<div class="kbar"><div class="kb"><div class="kl">CA estimé</div><div class="kv" id="fo-ca">—</div></div>';
   h+='<div class="kb"><div class="kl">Marge brute</div><div class="kv kv-g" id="fo-mg">—</div></div>';
   h+='<div class="kb"><div class="kl">Taux de marge</div><div class="kv kv-g" id="fo-tx">—</div></div></div>';
@@ -1051,7 +1051,7 @@ function vFormOpp(m){
   h+='</div>';
   h+='<div class="fbr"><button class="btn btn-p" onclick="saveNewOpp()">Enregistrer</button><button class="btn" onclick="'+backCmd+'">Annuler</button></div></div>';
   m.innerHTML=h;
-  fType='Mission';newSocVis=false;
+  fType='Mission';newSocVis=false;joursManual=false;
   document.getElementById('fo-j').addEventListener('input',fCalcKpi);
   if(fromSoc){var ss=document.getElementById('ss');if(ss)ss.dispatchEvent(new Event('change'));}
 }
@@ -1124,15 +1124,19 @@ function onFStSingle(){
   updPL();
 }
 
+var joursManual=false;
 function fCalc(){
-  var d1=document.getElementById("fo-d1"),d2=document.getElementById("fo-d2"),fj=document.getElementById("fo-j");
-  if(d1&&d2&&d1.value&&d2.value&&d2.value>=d1.value)fj.value=cWD(new Date(d1.value),new Date(d2.value));
+  if(!joursManual){
+    var d1=document.getElementById("fo-d1"),d2=document.getElementById("fo-d2"),fj=document.getElementById("fo-j");
+    if(d1&&d2&&d1.value&&d2.value&&d2.value>=d1.value&&fj)fj.value=cWD(new Date(d1.value),new Date(d2.value));
+  }
   fCalcKpi();
 }
 function fCalcKpi(){
+  joursManual=true;
   var fj=document.getElementById("fo-j");
-  var t=parseFloat(document.getElementById("fo-tjm").value)||0;
-  var c=parseFloat(document.getElementById("fo-cj").value)||0;
+  var t=parseFloat(document.getElementById("fo-tjm")?document.getElementById("fo-tjm").value:0)||0;
+  var c=parseFloat(document.getElementById("fo-cj")?document.getElementById("fo-cj").value:0)||0;
   var j=parseFloat(fj?fj.value:0)||0;
   var ca=document.getElementById("fo-ca"),mg=document.getElementById("fo-mg"),tx=document.getElementById("fo-tx");
   if(!ca)return;
@@ -1153,13 +1157,19 @@ async function saveNewOpp(){
     date_recherche:drEl?drEl.value:null};
   if(fType==="Mission"){
     var pm=document.getElementById("fo-poste-m");
+    var d1El=document.getElementById("fo-d1");
+    var d2El=document.getElementById("fo-d2");
+    var tjmEl=document.getElementById("fo-tjm");
+    var cjEl=document.getElementById("fo-cj");
+    var fjEl=document.getElementById("fo-j");
+    var fpEl=document.getElementById("fp-inp");
     body.poste=pm?pm.value:"";
-    body.date_debut=document.getElementById("fo-d1").value||null;
-    body.date_fin=document.getElementById("fo-d2").value||null;
-    body.tjm=parseFloat(document.getElementById("fo-tjm").value)||0;
-    body.cout_journalier=parseFloat(document.getElementById("fo-cj").value)||0;
-    body.jours_ouvres=parseInt(document.getElementById("fo-j").value)||0;
-    body.manager=st==="Succes"?(document.getElementById("fp-inp").value||""):"";
+    body.date_debut=d1El&&d1El.value?d1El.value:null;
+    body.date_fin=d2El&&d2El.value?d2El.value:null;
+    body.tjm=tjmEl&&tjmEl.value?parseFloat(tjmEl.value):0;
+    body.cout_journalier=cjEl&&cjEl.value?parseFloat(cjEl.value):0;
+    body.jours_ouvres=fjEl&&fjEl.value?parseInt(fjEl.value):0;
+    body.manager=(st==="Mission en cours"||st==="Mission terminée")&&fpEl?fpEl.value:"";
   } else {
     var fp=document.getElementById("fo-poste");
     body.poste=fp?fp.value:"";
