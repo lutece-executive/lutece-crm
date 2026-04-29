@@ -148,7 +148,7 @@ var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 function sbH(){return{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=representation'};}
 
 async function sbGet(t,p){var r=await fetch(SB_URL+'/rest/v1/'+t+'?'+(p||''),{headers:sbH()});if(!r.ok)return[];return await r.json();}
-async function sbPost(t,b){var r=await fetch(SB_URL+'/rest/v1/'+t,{method:'POST',headers:sbH(),body:JSON.stringify(b)});if(!r.ok){console.error(await r.text());return null;}var d=await r.json();return Array.isArray(d)?d[0]:d;}
+async function sbPost(t,b){try{var r=await fetch(SB_URL+'/rest/v1/'+t,{method:'POST',headers:sbH(),body:JSON.stringify(b)});if(!r.ok){var err=await r.text();alert('Erreur Supabase: '+err);return null;}var d=await r.json();return Array.isArray(d)?d[0]:d;}catch(e){alert('Erreur réseau: '+e.message);return null;}}
 async function sbPatch(t,id,b){var r=await fetch(SB_URL+'/rest/v1/'+t+'?id=eq.'+id,{method:'PATCH',headers:sbH(),body:JSON.stringify(b)});if(!r.ok){console.error(await r.text());return null;}var d=await r.json();return Array.isArray(d)?d[0]:d;}
 async function sbDel(t,id){var r=await fetch(SB_URL+'/rest/v1/'+t+'?id=eq.'+id,{method:'DELETE',headers:sbH()});return r.ok;}
 
@@ -1183,10 +1183,12 @@ async function saveNewOpp(){
     if(srcEl&&srcEl.value)body.source_candidat=srcEl.value;
     if(raisonEl&&raisonEl.value)body.raison_echec=raisonEl.value;
   }
-  var newOpp=await sbPost('opportunites',body);
-  if(!newOpp){alert("Erreur lors de la création.");return;}
-  await loadDB();
-  selOpp=newOpp.id;view="opp_detail";render();
+  try{
+    var newOpp=await sbPost('opportunites',body);
+    if(!newOpp){return;}
+    await loadDB();
+    selOpp=newOpp.id;view="opp_detail";render();
+  }catch(e){alert('Erreur: '+e.message);}
 }
 </script>
 </body>
