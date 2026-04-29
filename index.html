@@ -288,7 +288,10 @@ function vDB(m){
     var cs=0,ms=0,cr=0;
     s.opps.forEach(function(o){
       if(oy(o)!==CY)return;
-      if(o.statut==="Succes"||o.statut==="Gagné"||o.statut==="Mission terminée"){nOk++;if(o.type==="Mission")nMOk++;else nCOk++;}
+      // nOk: Missions actives/terminées en CY + CDI gagnés en CY
+      var oppYear=o.d1?parseInt(o.d1.split("-")[0]):(o.dr?parseInt(o.dr.split("-")[0]):null);
+      if(o.type==="Mission"&&(o.statut==="Mission en cours"||o.statut==="Mission terminée"||o.statut==="En cours"||o.statut==="Succes")&&oppYear===CY){nOk++;nMOk++;}
+      else if(o.type==="CDI"&&(o.statut==="Gagné"||o.statut==="Succes")&&oppYear===CY){nOk++;nCOk++;}
       else if(o.statut==="Echec"||o.statut==="Perdu"){nKo++;if(o.type==="Mission")nMKo++;else nCKo++;}
       else if(o.statut==="Mission en cours"||o.statut==="En cours"||o.statut==="Recherche en cours"){nGo++;if(o.type==="Mission")nMGo++;else nCGo++;}
       if(o.type==="Mission"&&o.statut!=="Recherche en cours"){var r=cm(o);tca+=r.ca;tcaM+=r.ca;tmM+=r.m;cs+=r.ca;ms+=r.m;}
