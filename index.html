@@ -1052,7 +1052,7 @@ function vFormOpp(m){
   h+='<div class="fbr"><button class="btn btn-p" onclick="saveNewOpp()">Enregistrer</button><button class="btn" onclick="'+backCmd+'">Annuler</button></div></div>';
   m.innerHTML=h;
   fType='Mission';newSocVis=false;
-  document.getElementById('fo-j').addEventListener('input',fCalc);
+  document.getElementById('fo-j').addEventListener('input',fCalcKpi);
   if(fromSoc){var ss=document.getElementById('ss');if(ss)ss.dispatchEvent(new Event('change'));}
 }
 
@@ -1127,9 +1127,13 @@ function onFStSingle(){
 function fCalc(){
   var d1=document.getElementById("fo-d1"),d2=document.getElementById("fo-d2"),fj=document.getElementById("fo-j");
   if(d1&&d2&&d1.value&&d2.value&&d2.value>=d1.value)fj.value=cWD(new Date(d1.value),new Date(d2.value));
+  fCalcKpi();
+}
+function fCalcKpi(){
+  var fj=document.getElementById("fo-j");
   var t=parseFloat(document.getElementById("fo-tjm").value)||0;
   var c=parseFloat(document.getElementById("fo-cj").value)||0;
-  var j=parseFloat(fj.value)||0;
+  var j=parseFloat(fj?fj.value:0)||0;
   var ca=document.getElementById("fo-ca"),mg=document.getElementById("fo-mg"),tx=document.getElementById("fo-tx");
   if(!ca)return;
   if(t>0&&j>0){var CA=Math.round(t*j),M=Math.round((t-c)*j),T=CA>0?Math.round(M/CA*100):0;ca.textContent=fmt(CA)+' €';mg.textContent=fmt(M)+' €';tx.textContent=T+'%';}
@@ -1141,7 +1145,7 @@ async function saveNewOpp(){
   var socId=socEl?socEl.value:null;
   var s=socId?socById(socId):null;
   if(!s){alert("Veuillez sélectionner une société.");return;}
-  var st=document.getElementById("fo-st").value;
+  var stEl=document.getElementById("fo-st-single");var st=stEl?stEl.value:"Recherche en cours";
   var asso=document.getElementById("fo-asso")?document.getElementById("fo-asso").value:"Guillaume Alonso";
   var drEl=document.getElementById("fo-dr");
   var body={societe_id:s.id,type:fType,statut:st,associe:asso,
