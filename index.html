@@ -198,7 +198,7 @@ function doLogin(){
   document.getElementById("user-name").textContent=user.prenom;
   document.getElementById("user-email").textContent=user.email;
   document.getElementById("user-av").textContent=user.initiales;
-  sessionStorage.setItem('crm_user', JSON.stringify(currentUser));
+  localStorage.setItem('crm_user', JSON.stringify(currentUser));
   document.getElementById("login-screen").style.display="none";
   document.getElementById("app-screen").style.display="block";
   loadDB();
@@ -206,7 +206,7 @@ function doLogin(){
 
 function doLogout(){
   currentUser=null;
-  sessionStorage.removeItem('crm_user');
+  localStorage.removeItem('crm_user');
   document.getElementById("li-email").value="";
   document.getElementById("li-pwd").value="";
   document.getElementById("login-screen").style.display="flex";
@@ -1202,7 +1202,7 @@ async function saveNewOpp(){
 // Restore session on page load
 (function(){
   var saved=null;
-  try{saved=JSON.parse(sessionStorage.getItem('crm_user'));}catch(e){}
+  try{saved=JSON.parse(localStorage.getItem('crm_user'));}catch(e){}
   if(saved){
     currentUser=saved;
     document.getElementById('login-screen').style.display='none';
